@@ -1,6 +1,6 @@
+gunicorn
 flask
 flask-cors
 pymongo
 PyJWT
 bcrypt
-gunicorn
