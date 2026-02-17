@@ -6,8 +6,9 @@ import jwt
 import datetime
 import os
 
-app = Flask(__name__, static_folder="../frontend", static_url_path="")
-CORS(app)
+app = Flask(__name__)
+
+CORS(app, origins=["vdvigilancedriver.netlify.app"])
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
