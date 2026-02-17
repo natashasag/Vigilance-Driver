@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vigilance Driver - Sign Up</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+      <h1>Vigilance Driver</h1>
+    </div>
+    <h2 class="auth-title">Create Account</h2>
+    <p class="auth-subtitle">Sign up to start using drowsiness detection</p>
+    <form class="auth-form" id="signupForm">
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="driver@example.com" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="••••••••" required>
+          <button type="button" class="password-toggle" onclick="togglePassword('password')">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="confirmPassword" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn-primary" id="submitBtn">✚ Create Account</button>
+      <p class="auth-link">Already have an account? <a href="login.html">Sign In</a></p>
+    </form>
+  </div>
+  <script>
+    function togglePassword(id) {
+      const p = document.getElementById(id);
+      p.type = p.type === 'password' ? 'text' : 'password';
+    }
+
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById('errorMsg');
+      errEl.classList.remove('show');
+      const pw = document.getElementById('password').value;
+      const cpw = document.getElementById('confirmPassword').value;
+
+      if (pw !== cpw) { errEl.textContent = 'Passwords do not match'; errEl.classList.add('show'); return; }
+      if (pw.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; errEl.classList.add('show'); return; }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        const res = await fetch('/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: document.getElementById('email').value, password: pw })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errEl.textContent = data.error;
+          errEl.classList.add('show');
+        } else {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('email', data.email);
+          window.location.href = 'dashboard.html';
+        }
+      } catch (err) {
+        errEl.textContent = 'Connection error. Is the server running?';
+        errEl.classList.add('show');
+      }
+      btn.disabled = false;
+      btn.textContent = '✚ Create Account';
+    });
+  </script>
+</body>
+</html>
