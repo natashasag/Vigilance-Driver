@@ -1,10 +1,17 @@
+import os
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-client = MongoClient("mongodb+srv://natashasag:SEMESTER06@cluster0.grku4ke.mongodb.net/?appName=Cluster0")
+MONGO_URI = os.environ.get("MONGO_URI")
+
+if not MONGO_URI:
+    raise Exception("MONGO_URI environment variable not set")
+
+client = MongoClient(MONGO_URI)
 db = client["vigilance_driver"]
 users_collection = db["users"]
 sessions_collection = db["sessions"]
+
 
 
 def create_user(email, hashed_password):
