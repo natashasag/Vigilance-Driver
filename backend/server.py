@@ -8,7 +8,11 @@ import os
 
 app = Flask(__name__)
 
-CORS(app, origins=["vdvigilancedriver.netlify.app"])
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "https://vdvigilancedriver.netlify.app"
+    }
+})
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
