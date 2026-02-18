@@ -2,116 +2,149 @@
 function getToken() { return localStorage.getItem('token'); }
 function logout() { localStorage.removeItem('token'); localStorage.removeItem('email'); window.location.href = 'login.html'; }
 
-// ---- Audio Alert ----
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let alarmPlaying = false;
-let alarmOscillator = null;
-
-function startAlarm() {
-  if (alarmPlaying) return;
-  alarmPlaying = true;
-  alarmOscillator = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  alarmOscillator.type = 'square';
-  alarmOscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-  alarmOscillator.connect(gain).connect(audioCtx.destination);
-  alarmOscillator.start();
-  // Beep pattern: alternate frequency
-  const beepInterval = setInterval(() => {
-    if (!alarmPlaying) { clearInterval(beepInterval); return; }
-    const t = audioCtx.currentTime;
-    alarmOscillator.frequency.setValueAtTime(880, t);
-    alarmOscillator.frequency.setValueAtTime(0, t + 0.15);
-    alarmOscillator.frequency.setValueAtTime(880, t + 0.3);
-  }, 600);
-}
-
-function stopAlarm() {
-  if (!alarmPlaying) return;
-  alarmPlaying = false;
-  if (alarmOscillator) { alarmOscillator.stop(); alarmOscillator = null; }
-}
-
 // ---- Detection State ----
 let isRunning = false;
 let stream = null;
-let detectionInterval = null;
+let animFrameId = null;
 let startTime = 0;
 let closedFrames = 0;
 let blinkCount = 0;
+let yawnCount = 0;
 let wasClosed = false;
+let wasYawning = false;
 let totalAlerts = 0;
 let totalMicroSleeps = 0;
-let totalYawns = 0;
 let logs = [];
 let modelsLoaded = false;
+let audioCtx = null;
+let oscillator = null;
+let isAlarmOn = false;
 
 const EAR_THRESHOLD = 0.25;
-const DROWSY_FRAMES = 15;
 const MAR_THRESHOLD = 0.6;
+const DROWSY_FRAMES = 15;
+const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
 
-// ---- EAR Calculation from 68 landmarks ----
-function euclidean(p1, p2) {
-  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+// ---- Math Helpers ----
+function euclidean(a, b) {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }
 
-function calculateEAR(landmarks) {
-  // Left eye: points 36-41, Right eye: points 42-47 (0-indexed)
-  const pts = landmarks.positions;
-
-  // Left eye
-  const l1 = euclidean(pts[37], pts[41]); // p2-p6
-  const l2 = euclidean(pts[38], pts[40]); // p3-p5
-  const l3 = euclidean(pts[36], pts[39]); // p1-p4
-  const leftEAR = (l1 + l2) / (2.0 * l3);
-
-  // Right eye
-  const r1 = euclidean(pts[43], pts[47]);
-  const r2 = euclidean(pts[44], pts[46]);
-  const r3 = euclidean(pts[42], pts[45]);
-  const rightEAR = (r1 + r2) / (2.0 * r3);
-
-  return (leftEAR + rightEAR) / 2.0;
+function calculateEAR(pts) {
+  const leftEAR = (euclidean(pts[37], pts[41]) + euclidean(pts[38], pts[40])) / (2 * euclidean(pts[36], pts[39]));
+  const rightEAR = (euclidean(pts[43], pts[47]) + euclidean(pts[44], pts[46])) / (2 * euclidean(pts[42], pts[45]));
+  return (leftEAR + rightEAR) / 2;
 }
 
-function calculateMAR(landmarks) {
-  // Mouth: outer lips points 48-67
-  const pts = landmarks.positions;
-  const v1 = euclidean(pts[51], pts[57]); // top-bottom center
-  const v2 = euclidean(pts[50], pts[58]);
-  const v3 = euclidean(pts[52], pts[56]);
-  const h = euclidean(pts[48], pts[54]); // left-right corner
-  return (v1 + v2 + v3) / (2.0 * h);
+function calculateMAR(pts) {
+  const vertical = euclidean(pts[61], pts[67]) + euclidean(pts[62], pts[66]) + euclidean(pts[63], pts[65]);
+  const horizontal = euclidean(pts[60], pts[64]);
+  return vertical / (2 * horizontal);
 }
 
-function calculateHeadPose(landmarks) {
-  const pts = landmarks.positions;
-  const noseTip = pts[30];
+function calculateHeadPose(pts) {
+  const nose = pts[30];
   const leftEye = pts[36];
   const rightEye = pts[45];
   const midEye = { x: (leftEye.x + rightEye.x) / 2, y: (leftEye.y + rightEye.y) / 2 };
-  const dx = Math.abs(noseTip.x - midEye.x);
-  const dy = Math.abs(noseTip.y - midEye.y);
-  const eyeDist = euclidean(leftEye, rightEye);
-  const deviation = (dx + dy) / eyeDist;
+  const eyeWidth = euclidean(leftEye, rightEye);
+  const deviation = Math.abs(nose.x - midEye.x) / eyeWidth;
   return Math.max(0, Math.min(100, 100 - deviation * 200));
 }
 
-// ---- Load face-api.js models ----
-async function loadModels() {
-  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-  addLog('Loading face detection models...', 'info');
+// ---- Audio Alarm ----
+function startAlarm() {
+  if (isAlarmOn) return;
+  isAlarmOn = true;
   try {
-    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-    modelsLoaded = true;
-    addLog('✅ Models loaded successfully', 'info');
-  } catch (err) {
-    addLog('❌ Failed to load models: ' + err.message, 'danger');
-  }
+    audioCtx = new AudioContext();
+    oscillator = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    oscillator.type = 'square';
+    oscillator.frequency.value = 800;
+    gain.gain.value = 0.3;
+    oscillator.connect(gain);
+    gain.connect(audioCtx.destination);
+    oscillator.start();
+  } catch (e) { /* audio not supported */ }
 }
 
+function stopAlarm() {
+  if (!isAlarmOn) return;
+  isAlarmOn = false;
+  try { oscillator?.stop(); } catch (e) {}
+  oscillator = null;
+  try { audioCtx?.close(); } catch (e) {}
+  audioCtx = null;
+}
+
+// ---- Landmark Drawing ----
+function drawLandmarks(detection) {
+  const canvas = document.getElementById('overlayCanvas');
+  const video = document.getElementById('webcam');
+  if (!canvas || !video) return;
+
+  const ctx = canvas.getContext('2d');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const pts = detection.landmarks.positions;
+
+  // Draw all 68 landmark dots
+  ctx.fillStyle = '#22c55e';
+  pts.forEach(pt => {
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Draw connections
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 1.2;
+  ctx.globalAlpha = 0.6;
+
+  function drawPath(indices, close = false) {
+    ctx.beginPath();
+    ctx.moveTo(pts[indices[0]].x, pts[indices[0]].y);
+    for (let i = 1; i < indices.length; i++) {
+      ctx.lineTo(pts[indices[i]].x, pts[indices[i]].y);
+    }
+    if (close) ctx.closePath();
+    ctx.stroke();
+  }
+
+  // Jaw (0-16)
+  drawPath(Array.from({ length: 17 }, (_, i) => i));
+  // Left eyebrow (17-21)
+  drawPath([17, 18, 19, 20, 21]);
+  // Right eyebrow (22-26)
+  drawPath([22, 23, 24, 25, 26]);
+  // Nose bridge (27-30)
+  drawPath([27, 28, 29, 30]);
+  // Nose bottom (31-35)
+  drawPath([31, 32, 33, 34, 35]);
+  // Left eye (36-41)
+  drawPath([36, 37, 38, 39, 40, 41], true);
+  // Right eye (42-47)
+  drawPath([42, 43, 44, 45, 46, 47], true);
+  // Outer mouth (48-59)
+  drawPath([48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59], true);
+  // Inner mouth (60-67)
+  drawPath([60, 61, 62, 63, 64, 65, 66, 67], true);
+
+  ctx.globalAlpha = 1.0;
+
+  // Face bounding box
+  const box = detection.detection.box;
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 2;
+  ctx.globalAlpha = 0.4;
+  ctx.strokeRect(box.x, box.y, box.width, box.height);
+  ctx.globalAlpha = 1.0;
+}
+
+// ---- Logging ----
 function addLog(message, type) {
   const time = new Date().toLocaleTimeString();
   logs.unshift({ time, message, type });
@@ -132,11 +165,52 @@ function renderLogs() {
   document.getElementById('logCount').textContent = logs.length + ' events';
 }
 
-async function startDetection() {
-  if (!modelsLoaded) {
-    await loadModels();
-    if (!modelsLoaded) return;
+// ---- Load Models ----
+async function loadModels() {
+  const statusEl = document.getElementById('modelStatus');
+  if (statusEl) statusEl.textContent = 'Loading face detection models...';
+  try {
+    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+    modelsLoaded = true;
+    if (statusEl) statusEl.textContent = 'Models loaded ✓';
+    addLog('Face detection models loaded', 'info');
+  } catch (err) {
+    if (statusEl) statusEl.textContent = 'Failed to load models!';
+    addLog('Failed to load face-api models: ' + err.message, 'danger');
   }
+}
+
+// ---- Save Session to MongoDB ----
+async function saveSession() {
+  const token = getToken();
+  if (!token) return;
+  const elapsed = (Date.now() - startTime) / 1000;
+  const data = {
+    started_at: new Date(startTime).toISOString(),
+    ended_at: new Date().toISOString(),
+    total_blinks: blinkCount,
+    total_yawns: yawnCount,
+    total_alerts: totalAlerts,
+    total_microsleeps: totalMicroSleeps,
+    duration_seconds: Math.round(elapsed),
+    avg_alertness: Math.max(0, 100 - parseInt(document.getElementById('drowsinessScore')?.textContent || '0'))
+  };
+  try {
+    await fetch('/api/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify(data)
+    });
+    addLog('Session saved to database', 'info');
+  } catch (e) {
+    addLog('Failed to save session', 'danger');
+  }
+}
+
+// ---- Detection ----
+async function startDetection() {
+  if (!modelsLoaded) { addLog('Models still loading, please wait...', 'warning'); return; }
 
   try {
     stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480, facingMode: 'user' } });
@@ -148,21 +222,20 @@ async function startDetection() {
     startTime = Date.now();
     closedFrames = 0;
     blinkCount = 0;
+    yawnCount = 0;
     wasClosed = false;
+    wasYawning = false;
     totalAlerts = 0;
     totalMicroSleeps = 0;
-    totalYawns = 0;
     logs = [];
     isRunning = true;
-
     updateStartButton();
     addLog('Detection started - Camera active', 'info');
 
-    // Real detection loop
     async function detectFrame() {
-      if (!isRunning) return;
-
       const video = document.getElementById('webcam');
+      if (!video || video.paused || video.ended || !isRunning) return;
+
       const detection = await faceapi
         .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
         .withFaceLandmarks();
@@ -171,15 +244,11 @@ async function startDetection() {
       const minutes = elapsed / 60;
 
       if (detection) {
-        const ear = parseFloat(calculateEAR(detection.landmarks).toFixed(3));
-        const mar = parseFloat(calculateMAR(detection.landmarks).toFixed(3));
-        const headPoseScore = calculateHeadPose(detection.landmarks);
-
-        // Yawn detection
-        if (mar > MAR_THRESHOLD) {
-          totalYawns++;
-          addLog('🥱 Yawn detected (MAR: ' + mar.toFixed(2) + ')', 'warning');
-        }
+        drawLandmarks(detection);
+        const pts = detection.landmarks.positions;
+        const ear = parseFloat(calculateEAR(pts).toFixed(3));
+        const mar = calculateMAR(pts);
+        const headPoseScore = calculateHeadPose(pts);
 
         const isClosed = ear < EAR_THRESHOLD;
         if (isClosed) { closedFrames++; }
@@ -189,42 +258,44 @@ async function startDetection() {
         }
         wasClosed = isClosed;
 
+        const isYawning = mar > MAR_THRESHOLD;
+        if (isYawning && !wasYawning) {
+          yawnCount++;
+          addLog('🥱 Yawn detected', 'warning');
+        }
+        wasYawning = isYawning;
+
         const isMicroSleep = closedFrames > DROWSY_FRAMES;
-        const fatigueFactor = Math.max(0, 1 - elapsed / 600);
         const drowsinessScore = Math.min(100, Math.round(
-          15 + (1 - fatigueFactor) * 20 +
-          (isMicroSleep ? 35 : 0) +
-          (ear < EAR_THRESHOLD ? 15 : 0) +
-          (100 - headPoseScore) * 0.15
+          (isClosed ? 25 : 5) + (isYawning ? 20 : 0) + (isMicroSleep ? 35 : 0) + Math.max(0, 20 - headPoseScore / 5)
         ));
         const status = drowsinessScore > 60 ? 'drowsy' : drowsinessScore > 35 ? 'warning' : 'alert';
         const blinkRate = minutes > 0 ? parseFloat((blinkCount / minutes).toFixed(1)) : 0;
+
+        if (isMicroSleep) startAlarm(); else stopAlarm();
 
         if (isMicroSleep && closedFrames === DROWSY_FRAMES + 1) {
           totalMicroSleeps++;
           totalAlerts++;
           addLog('⚠️ Micro-sleep detected!', 'danger');
-          startAlarm();
-        }
-
-        if (!isMicroSleep && status === 'alert') {
-          stopAlarm();
         }
 
         updateDashboard({
           ear, drowsinessScore, status, blinkRate,
-          blinks: blinkCount, yawns: totalYawns, alerts: totalAlerts,
+          blinks: blinkCount, yawns: yawnCount, alerts: totalAlerts,
           microSleeps: totalMicroSleeps, sessionTime: Math.round(elapsed),
-          headPoseScore
+          headPoseScore: Math.round(headPoseScore)
         });
       } else {
-        addLog('No face detected', 'warning');
+        // No face - clear canvas
+        const canvas = document.getElementById('overlayCanvas');
+        if (canvas) { const ctx = canvas.getContext('2d'); ctx?.clearRect(0, 0, canvas.width, canvas.height); }
       }
 
-      if (isRunning) requestAnimationFrame(detectFrame);
+      animFrameId = requestAnimationFrame(detectFrame);
     }
 
-    detectFrame();
+    animFrameId = requestAnimationFrame(detectFrame);
   } catch (err) {
     addLog('Failed to access camera: ' + err.message, 'danger');
   }
@@ -232,29 +303,27 @@ async function startDetection() {
 
 function stopDetection() {
   isRunning = false;
-  stopAlarm();
+  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
   const video = document.getElementById('webcam');
   if (video) video.srcObject = null;
+  const canvas = document.getElementById('overlayCanvas');
+  if (canvas) { const ctx = canvas.getContext('2d'); ctx?.clearRect(0, 0, canvas.width, canvas.height); }
   document.getElementById('videoPlaceholder').classList.remove('hidden');
+  stopAlarm();
   updateStartButton();
   addLog('Detection stopped', 'info');
+  saveSession();
 }
 
 function toggleDetection() {
-  if (isRunning) stopDetection();
-  else startDetection();
+  if (isRunning) stopDetection(); else startDetection();
 }
 
 function updateStartButton() {
   const btn = document.getElementById('btnStart');
-  if (isRunning) {
-    btn.className = 'btn-start running';
-    btn.innerHTML = '⏹ Stop Detection';
-  } else {
-    btn.className = 'btn-start';
-    btn.innerHTML = '📷 Start Detection';
-  }
+  if (isRunning) { btn.className = 'btn-start running'; btn.innerHTML = '⏹ Stop Detection'; }
+  else { btn.className = 'btn-start'; btn.innerHTML = '📷 Start Detection'; }
 }
 
 function updateDashboard(d) {
@@ -285,22 +354,22 @@ function updateDashboard(d) {
   document.getElementById('statBlinks').textContent = d.blinks;
   document.getElementById('statYawns').textContent = d.yawns;
   document.getElementById('statAlerts').textContent = d.alerts;
+
   document.getElementById('headPoseFill').style.width = d.headPoseScore + '%';
-  document.getElementById('headPoseVal').textContent = Math.round(d.headPoseScore) + '%';
+  document.getElementById('headPoseVal').textContent = d.headPoseScore + '%';
 
   const m = Math.floor(d.sessionTime / 60);
   document.getElementById('sessionTime').textContent = m + 'm';
   document.getElementById('avgAlertness').textContent = Math.max(0, 100 - d.drowsinessScore) + '%';
 }
 
+// Driving modes
 function toggleSafetyMode() {
   document.getElementById('safetyToggle').className = 'toggle on';
   document.getElementById('ecoToggle').className = 'toggle off';
   document.getElementById('safetyIcon').className = 'mode-icon green';
   document.getElementById('ecoIcon').className = 'mode-icon gray';
   document.getElementById('modeStatus').textContent = '⚡ Maximum protection active';
-  document.querySelector('.mode-item:nth-child(1)').classList.add('active');
-  document.querySelector('.mode-item:nth-child(2)').classList.remove('active');
 }
 
 function toggleEcoMode() {
@@ -309,11 +378,11 @@ function toggleEcoMode() {
   document.getElementById('safetyIcon').className = 'mode-icon gray';
   document.getElementById('ecoIcon').className = 'mode-icon green';
   document.getElementById('modeStatus').textContent = '⚡ Eco mode active';
-  document.querySelector('.mode-item:nth-child(1)').classList.remove('active');
-  document.querySelector('.mode-item:nth-child(2)').classList.add('active');
 }
 
+// Init
 document.addEventListener('DOMContentLoaded', () => {
   if (!getToken()) { window.location.href = 'login.html'; return; }
   renderLogs();
+  loadModels();
 });
