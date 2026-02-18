@@ -105,14 +105,14 @@ def get_detection_sessions():
     sessions = get_sessions(decoded["user_id"])
     return jsonify(sessions), 200
 
-@app.route("/")
-def index():
-    return send_from_directory(FRONTEND_DIR, "index.html")
-
-
+@app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
-def serve_static(path):
-    return send_from_directory(FRONTEND_DIR, path)
+def serve_frontend(path):
+    # Serve index.html for root and any route not beginning with /api
+    if path != "" and os.path.exists(os.path.join(FRONTEND_DIR, path)):
+        return send_from_directory(FRONTEND_DIR, path)
+    else:
+        return send_from_directory(FRONTEND_DIR, "index.html")
 
 
 
