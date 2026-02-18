@@ -17,11 +17,7 @@ app = Flask(
 
 
 
-CORS(app, resources={
-    r"/api/*": {
-        "origins": "https://vdvigilancedriver.netlify.app"
-    }
-})
+CORS(app)
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
