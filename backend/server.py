@@ -5,11 +5,16 @@ import bcrypt
 import jwt
 import datetime
 import os
+
+
+app = Flask(
+    __name__,
+    static_folder=FRONTEND_DIR,
+    static_url_path=""
+)
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
-
-app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
-
 
 
 CORS(app, resources={
@@ -105,8 +110,18 @@ def get_detection_sessions():
     sessions = get_sessions(decoded["user_id"])
     return jsonify(sessions), 200
 
-@app.route("/")
-def index():
-    return app.send_static_file("index.html")
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_frontend(path):
+    file_path = os.path.join(FRONTEND_DIR, path)
+
+    if path != "" and os.path.exists(file_path):
+        return send_from_directory(FRONTEND_DIR, path)
+
+    return send_from_directory(FRONTEND_DIR, "index.html")
 
 
+
+
+    
