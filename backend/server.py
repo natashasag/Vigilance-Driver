@@ -7,7 +7,7 @@ import datetime
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
 app = Flask(
     __name__,
@@ -125,6 +125,7 @@ def serve_static(path):
 
 if __name__ == "__main__":
     app.run(debug=True)
+print("Frontend path:", FRONTEND_DIR)
 
 
 
