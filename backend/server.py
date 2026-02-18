@@ -119,6 +119,7 @@ def serve_index():
 def predict():
     data = request.json
     return jsonify({"result": "OK"})
+
 @app.route("/<path:path>")
 def serve_static(path):
     return send_from_directory(FRONTEND_DIR, path)
