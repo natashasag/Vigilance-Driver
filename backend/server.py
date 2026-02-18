@@ -6,7 +6,8 @@ import jwt
 import datetime
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="frontend", static_url_path="")
+
 
 CORS(app, resources={
     r"/api/*": {
@@ -37,12 +38,14 @@ def verify_token(token):
 
 @app.route("/")
 def index():
-    return send_from_directory("../frontend", "login.html")
+   return send_from_directory("frontend", "index.html")
+
 
 
 @app.route("/<path:path>")
 def serve_static(path):
-    return send_from_directory("../frontend", path)
+    return send_from_directory("frontend", path)
+
 
 
 @app.route("/api/signup", methods=["POST"])
