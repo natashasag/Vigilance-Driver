@@ -38,19 +38,6 @@ def verify_token(token):
     except jwt.InvalidTokenError:
         return None
 
-
-@app.route("/")
-def index():
-   return send_from_directory("frontend", "index.html")
-
-
-
-@app.route("/<path:path>")
-def serve_static(path):
-    return send_from_directory("frontend", path)
-
-
-
 @app.route("/api/signup", methods=["POST"])
 def signup():
     data = request.json
