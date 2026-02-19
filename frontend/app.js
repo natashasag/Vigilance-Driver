@@ -197,7 +197,7 @@ async function saveSession() {
     avg_alertness: Math.max(0, 100 - parseInt(document.getElementById('drowsinessScore')?.textContent || '0'))
   };
   try {
-    await fetch('/api/session', {
+    await fetch('https://vigilance-driver.onrender.com/api/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify(data)
