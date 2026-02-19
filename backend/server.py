@@ -12,8 +12,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 app = Flask(__name__)
-CORS(app)
-
+CORS(app, origins=["https://vigilance-driver-frontend.onrender.com"])
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
