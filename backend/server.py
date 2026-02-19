@@ -9,7 +9,6 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-const API_BASE = "https://vigilance-driver.onrender.com";
 
 app = Flask(__name__)
 CORS(app, origins=["https://vigilance-driver.netlify.app"])
