@@ -382,7 +382,7 @@ function toggleEcoMode() {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-  if (!getToken()) { window.location.href = 'login.html'; return; }
+  if (!getToken()) { window.location.href = 'index.html'; return; }
   renderLogs();
   loadModels();
 });
