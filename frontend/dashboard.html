@@ -1,76 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vigilance Driver - Dashboard</title>
-  <link rel="stylesheet" href="styles.css?v=2026">
- <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Face API -->
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+
+  <!-- App JS -->
+  <script src="app.js" defer></script>
 </head>
+
 <body>
- 
+
   <!-- Header -->
-  <header>
-    <div class="logo">
+  <header class="dashboard-header">
+    <div class="header-brand">
       <span style="font-size:28px;">👁</span>
       <div>
         <h1>Driver Drowsiness Detection</h1>
-        <p>Real-time EAR &amp; Facial Landmark Monitoring</p>
+        <p>Real-time EAR & Facial Landmark Monitoring</p>
       </div>
     </div>
-    <div class="actions">
-      <span class="status">🟢 Online</span>
-      <button class="btn-privacy" id="privacyBtn" onclick="togglePrivacy()">🛡 Privacy Mode 👁</button>
+    <div class="header-actions">
+      <span class="status-online">🟢 Online</span>
+      <button class="btn-privacy" onclick="togglePrivacy()">🛡 Privacy Mode 👁</button>
       <button class="btn-signout" onclick="signOut()">🚪 Sign Out</button>
     </div>
   </header>
 
-  <!-- Main Dashboard Grid -->
+  <!-- Dashboard Grid -->
   <div class="dashboard-grid">
-    <!-- Left Column -->
-    <div style="display:flex;flex-direction:column;gap:24px;">
 
-      <!-- Video Feed -->
+    <!-- Left Column -->
+    <div class="left-column">
+
+      <!-- Video Feed Section -->
       <div class="glass-card">
-        <div class="video-container">
+
+        <!-- Video Feed -->
+        <div class="video-container" style="position:relative">
           <video id="video" muted playsinline></video>
-          <canvas id="canvas"></canvas>
+
+          <canvas id="overlayCanvas"
+            style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none">
+          </canvas>
+
           <div class="video-placeholder" id="placeholder">
-            <span>👁</span>
+            <span style="font-size:32px;">👁</span>
             <p id="placeholderText">Loading face detection models...</p>
           </div>
         </div>
       </div>
 
-      <!-- Start/Stop Button (Moved Here) -->
-      <button id="toggleBtn" onclick="toggleDetection()">📷 Start Detection</button>
+      <!-- Start/Stop Button (NOW BELOW VIDEO) -->
+      <button id="toggleBtn" onclick="toggleDetection()">
+        📷 Start Detection
+      </button>
 
       <!-- Session Log -->
       <div class="glass-card session-log">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <h3>🕐 Session Log</h3>
-          <span style="font-size:14px;color:#888;" id="logCount">0 events</span>
+          <span id="logCount">0 events</span>
         </div>
-        <div class="log-list" id="logList">
-          <p style="text-align:center;color:#888;font-size:14px;">Start detection to see logs</p>
+        <div id="logList">
+          <p style="text-align:center;color:#888;">Start detection to see logs</p>
         </div>
       </div>
+
     </div>
 
     <!-- Right Column -->
     <div class="stats-section">
 
-      <!-- Current Status -->
+      <!-- Status -->
       <div class="stat-card">
         <h3>Current Status</h3>
-        <div class="status-banner status-alert" id="statusBanner">Driver Alert</div>
+        <div class="status-banner status-alert" id="statusBanner">
+          Driver Alert
+        </div>
       </div>
 
       <!-- EAR -->
       <div class="stat-card">
         <h3>Eye Aspect Ratio (EAR)</h3>
         <div class="stat-value" id="earValue">0.000</div>
-        <p class="stat-sub" id="earStatus">Threshold: 0.25 | Eyes Open</p>
+        <p id="earStatus">Threshold: 0.25 | Eyes Open</p>
         <div class="progress-bar">
           <div class="progress-fill" id="earBar" style="width:0%"></div>
         </div>
@@ -80,11 +100,13 @@
       <div class="stat-card">
         <h3>⚡ Multi-Factor Drowsiness Score</h3>
         <div class="stat-value" id="drowsinessValue">0</div>
-        <p class="stat-sub" id="fatigueLabel" style="font-weight:600;color:#22c55e;">Low Fatigue Level</p>
+        <p id="fatigueLabel" style="color:#22c55e;font-weight:600;">
+          Low Fatigue Level
+        </p>
         <div class="progress-bar">
           <div class="progress-fill" id="drowsinessBar" style="width:0%"></div>
         </div>
-        <div class="explain-section">
+        <div>
           <h4>⚠ Why this score?</h4>
           <p id="explainText">• Alertness levels are normal</p>
         </div>
@@ -93,32 +115,26 @@
       <!-- Quick Stats -->
       <div class="quick-stats">
         <div class="mini-stat">
-          <span>🌙</span>
           <div class="value" id="microSleeps">0</div>
           <div class="label">Micro-sleeps</div>
         </div>
         <div class="mini-stat">
-          <span>📈</span>
           <div class="value" id="blinkRate">0/min</div>
           <div class="label">Blink Rate</div>
         </div>
         <div class="mini-stat">
-          <span>👁</span>
           <div class="value" id="blinks">0</div>
           <div class="label">Blinks</div>
         </div>
         <div class="mini-stat">
-          <span>⚡</span>
           <div class="value" id="yawns">0</div>
           <div class="label">Yawns</div>
         </div>
         <div class="mini-stat">
-          <span>⚠</span>
           <div class="value" id="alerts">0</div>
           <div class="label">Alerts</div>
         </div>
         <div class="mini-stat">
-          <span>🌙</span>
           <div class="value" id="microSleeps2">0</div>
           <div class="label">Micro-sleeps</div>
         </div>
@@ -131,87 +147,64 @@
           <div class="progress-bar" style="flex:1;">
             <div class="progress-fill" id="headPoseBar" style="width:0%"></div>
           </div>
-          <span style="font-size:14px;font-weight:700;color:#22c55e;" id="headPoseValue">0%</span>
+          <span id="headPoseValue">0%</span>
         </div>
       </div>
+
     </div>
   </div>
 
   <!-- Bottom Section -->
   <div class="bottom-grid">
+
     <!-- Driving Modes -->
     <div class="stat-card">
       <h3>⚙ Driving Modes</h3>
-      <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
-        <div class="mode-toggle active" id="safetyMode" onclick="toggleSafety()">
-          <div class="mode-icon">🛡</div>
-          <div class="mode-info">
-            <p>Safety Mode</p>
-            <small>Maximum sensitivity &amp; alerts</small>
-          </div>
-          <div class="toggle-switch active" id="safetySwitch">
-            <div class="toggle-knob"></div>
-          </div>
-        </div>
-        <div class="mode-toggle" id="ecoMode" onclick="toggleEco()">
-          <div class="mode-icon">⚡</div>
-          <div class="mode-info">
-            <p>Eco Mode</p>
-            <small>Reduced processing, saves battery</small>
-          </div>
-          <div class="toggle-switch" id="ecoSwitch">
-            <div class="toggle-knob"></div>
-          </div>
-        </div>
+
+      <div class="mode-toggle active" id="safetyMode" onclick="toggleSafety()">
+        🛡 Safety Mode
       </div>
-      <p style="font-size:12px;color:#888;margin-top:12px;" id="modeStatus">⚡ Maximum protection active</p>
+
+      <div class="mode-toggle" id="ecoMode" onclick="toggleEco()">
+        ⚡ Eco Mode
+      </div>
+
+      <p id="modeStatus">⚡ Maximum protection active</p>
     </div>
 
     <!-- Wellness Insights -->
     <div class="stat-card">
       <h3>❤ Wellness Insights</h3>
-      <div class="wellness-box" style="margin-top:16px;">
-        <p id="wellnessTitle">✨ Great Alertness!</p>
-        <small id="wellnessText">Your eye openness is excellent. Keep maintaining good sleep habits.</small>
-      </div>
+      <p id="wellnessTitle">✨ Great Alertness!</p>
+      <small id="wellnessText">
+        Your eye openness is excellent. Keep maintaining good sleep habits.
+      </small>
+
       <div class="wellness-stats">
         <div>
-          <span>📈</span>
-          <div class="val" id="sessionTime">0m 0s</div>
-          <div class="lbl">Session Time</div>
+          <div id="sessionTime">0m 0s</div>
+          <div>Session Time</div>
         </div>
         <div>
-          <span>❤</span>
-          <div class="val" id="avgAlertness">100%</div>
-          <div class="lbl">Avg Alertness</div>
+          <div id="avgAlertness">100%</div>
+          <div>Avg Alertness</div>
         </div>
       </div>
     </div>
+
   </div>
 
   <!-- How It Works -->
   <div class="how-section">
-    <div class="glass-card" style="padding:32px;">
-      <h3 style="margin-bottom:24px;font-size:18px;font-weight:700;">How It Works</h3>
-      <div class="how-grid">
-        <div>
-          <h4 style="font-weight:600;">Eye Aspect Ratio (EAR) Formula:</h4>
-          <code>EAR = (|p2-p6| + |p3-p5|) / (2 × |p1-p4|)</code>
-          <p style="font-size:14px;color:#888;margin-top:8px;">
-            When EAR drops below 0.25 for 2-3 seconds, drowsiness is detected.
-          </p>
-        </div>
-        <div>
-          <h4 style="font-weight:600;">Detection Features:</h4>
-          <ul>
-            <li>• 68-point facial landmark detection</li>
-            <li>• Real-time EAR &amp; MAR calculation</li>
-            <li>• Micro-sleep detection</li>
-            <li>• Head pose monitoring</li>
-            <li>• Multi-factor drowsiness scoring</li>
-          </ul>
-        </div>
-      </div>
+    <div class="glass-card">
+      <h3>How It Works</h3>
+      <code>
+        EAR = (|p2-p6| + |p3-p5|) / (2 × |p1-p4|)
+      </code>
+      <p>
+        When EAR drops below 0.25 for 2–3 seconds,
+        drowsiness is detected.
+      </p>
     </div>
   </div>
 
@@ -219,228 +212,34 @@
   <footer>
     <div class="footer-grid">
       <div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-          <span style="font-size:20px;">👁</span>
-          <span style="font-weight:700;">Vigilance Driver</span>
-        </div>
-        <p style="font-size:14px;color:#888;">
-          Driver drowsiness detection system using advanced facial landmark analysis
-          and Eye Aspect Ratio (EAR) technology to keep drivers safe on the road.
+        <strong>👁 Vigilance Driver</strong>
+        <p>
+          Driver drowsiness detection system using advanced
+          facial landmark analysis and Eye Aspect Ratio (EAR)
+          technology.
         </p>
-        <div style="margin-top:12px;font-size:12px;color:#22c55e;">
-          🛡 Privacy First &nbsp;&nbsp; ⚡ Real-time
-        </div>
       </div>
       <div>
         <h4>Features</h4>
         <ul>
           <li>EAR-based Detection</li>
           <li>Micro-sleep Alerts</li>
-          <li>Yawn Detection</li>
           <li>Head Pose Tracking</li>
-          <li>Session Analytics</li>
         </ul>
       </div>
       <div>
         <h4>Technology</h4>
         <ul>
           <li>face-api.js</li>
-          <li>68-point Landmarks</li>
-          <li>Web Audio API</li>
           <li>Flask + Python</li>
           <li>Real-time Processing</li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      © 2026 Vigilance Driver - Driver Drowsiness Detection System. All rights reserved.
+      © 2026 Vigilance Driver. All rights reserved.
     </div>
   </footer>
 
-  <script>
-    let isRunning = false;
-    let privacyMode = false;
-    let safetyActive = true;
-    let ecoActive = false;
-    let sessionSeconds = 0;
-    let sessionInterval = null;
-    let logs = [];
-
-    function toggleDetection() {
-      isRunning = !isRunning;
-      const btn = document.getElementById('toggleBtn');
-      if (isRunning) {
-        btn.innerHTML = '⏹ Stop Detection';
-        btn.classList.add('running');
-        document.getElementById('placeholder').style.display = 'none';
-        startSession();
-        fetch('/start_detection', { method: 'POST' });
-      } else {
-        btn.innerHTML = '📷 Start Detection';
-        btn.classList.remove('running');
-        stopSession();
-        fetch('/stop_detection', { method: 'POST' });
-      }
-    }
-
-    function togglePrivacy() {
-      privacyMode = !privacyMode;
-      const btn = document.getElementById('privacyBtn');
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      if (privacyMode) {
-        btn.innerHTML = '🛡 Privacy Mode 🔒';
-        video.style.filter = 'blur(20px)';
-        canvas.style.filter = 'blur(20px)';
-      } else {
-        btn.innerHTML = '🛡 Privacy Mode 👁';
-        video.style.filter = '';
-        canvas.style.filter = '';
-      }
-    }
-
-    function toggleSafety() {
-      safetyActive = !safetyActive;
-      if (safetyActive) ecoActive = false;
-      updateModes();
-    }
-
-    function toggleEco() {
-      ecoActive = !ecoActive;
-      if (ecoActive) safetyActive = false;
-      updateModes();
-    }
-
-    function updateModes() {
-      const sm = document.getElementById('safetyMode');
-      const ss = document.getElementById('safetySwitch');
-      const em = document.getElementById('ecoMode');
-      const es = document.getElementById('ecoSwitch');
-      const ms = document.getElementById('modeStatus');
-
-      sm.className = 'mode-toggle' + (safetyActive ? ' active' : '');
-      ss.className = 'toggle-switch' + (safetyActive ? ' active' : '');
-      em.className = 'mode-toggle' + (ecoActive ? ' active' : '');
-      es.className = 'toggle-switch' + (ecoActive ? ' active' : '');
-      ms.textContent = safetyActive ? '⚡ Maximum protection active' : '⚡ Eco mode active';
-    }
-
-    function startSession() {
-      sessionSeconds = 0;
-      sessionInterval = setInterval(() => {
-        sessionSeconds++;
-        const m = Math.floor(sessionSeconds / 60);
-        const s = sessionSeconds % 60;
-        document.getElementById('sessionTime').textContent = m + 'm ' + s + 's';
-      }, 1000);
-      pollData();
-    }
-
-    function stopSession() {
-      clearInterval(sessionInterval);
-    }
-
-    function pollData() {
-      if (!isRunning) return;
-      fetch('/get_status')
-        .then(r => r.json())
-        .then(data => {
-          updateUI(data);
-          setTimeout(pollData, 500);
-        })
-        .catch(() => setTimeout(pollData, 1000));
-    }
-
-    function updateUI(d) {
-      // EAR
-      const ear = d.ear || 0;
-      document.getElementById('earValue').textContent = ear.toFixed(3);
-      document.getElementById('earBar').style.width = Math.min(100, (ear / 0.4) * 100) + '%';
-      document.getElementById('earStatus').textContent =
-        'Threshold: 0.25 | ' + (ear >= 0.25 ? 'Eyes Open' : 'Eyes Closed');
-
-      // Drowsiness
-      const ds = d.drowsiness_score || 0;
-      document.getElementById('drowsinessValue').textContent = ds;
-      document.getElementById('drowsinessBar').style.width = ds + '%';
-      const bar = document.getElementById('drowsinessBar');
-      bar.className = 'progress-fill' + (ds < 30 ? '' : ds < 60 ? ' warning' : ' danger');
-
-      const fl = document.getElementById('fatigueLabel');
-      if (ds < 30) { fl.textContent = 'Low Fatigue Level'; fl.style.color = '#22c55e'; }
-      else if (ds < 60) { fl.textContent = 'Moderate Fatigue'; fl.style.color = '#f59e0b'; }
-      else { fl.textContent = 'High Fatigue - Rest Now!'; fl.style.color = '#ef4444'; }
-
-      document.getElementById('explainText').textContent =
-        ds < 30 ? '• Alertness levels are normal' :
-        ds < 60 ? '• Some fatigue indicators detected' :
-        '• Multiple drowsiness indicators active';
-
-      // Status
-      const banner = document.getElementById('statusBanner');
-      if (ds < 30) { banner.textContent = 'Driver Alert'; banner.className = 'status-banner status-alert'; }
-      else if (ds < 60) { banner.textContent = 'Caution'; banner.className = 'status-banner status-warning'; }
-      else { banner.textContent = 'Drowsy - Pull Over!'; banner.className = 'status-banner status-danger'; }
-
-      // Stats
-      document.getElementById('microSleeps').textContent = d.microsleeps || 0;
-      document.getElementById('microSleeps2').textContent = d.microsleeps || 0;
-      document.getElementById('blinkRate').textContent = (d.blink_rate || 0) + '/min';
-      document.getElementById('blinks').textContent = d.blinks || 0;
-      document.getElementById('yawns').textContent = d.yawns || 0;
-      document.getElementById('alerts').textContent = d.alerts || 0;
-      document.getElementById('headPoseBar').style.width = (d.head_pose_score || 0) + '%';
-      document.getElementById('headPoseValue').textContent = Math.round(d.head_pose_score || 0) + '%';
-
-      // Alertness
-      const alertness = Math.max(0, 100 - ds);
-      document.getElementById('avgAlertness').textContent = alertness + '%';
-
-      // Wellness
-      const wt = document.getElementById('wellnessTitle');
-      const wxt = document.getElementById('wellnessText');
-      if (ds < 30) {
-        wt.textContent = '✨ Great Alertness!';
-        wxt.textContent = 'Your eye openness is excellent. Keep maintaining good sleep habits.';
-      } else if (ds < 60) {
-        wt.textContent = '⚠️ Stay Focused';
-        wxt.textContent = 'Fatigue detected. Consider taking a break soon.';
-      } else {
-        wt.textContent = '🛑 Rest Required';
-        wxt.textContent = 'High fatigue levels detected. Please pull over and rest.';
-      }
-
-      // Logs
-      if (d.logs && d.logs.length > logs.length) {
-        logs = d.logs;
-        const list = document.getElementById('logList');
-        list.innerHTML = '';
-        logs.forEach(log => {
-          const div = document.createElement('div');
-          div.className = 'log-item';
-          div.innerHTML = '<span class="log-time">' + log.time + '</span>' +
-            '<span class="' + (log.type === 'danger' ? 'log-danger' : log.type === 'warning' ? 'log-warning' : '') + '">' +
-            log.message + '</span>';
-          list.appendChild(div);
-        });
-        document.getElementById('logCount').textContent = logs.length + ' events';
-        list.scrollTop = list.scrollHeight;
-      }
-    }
-
-    function signOut() {
-      window.location.href = 'index.html';
-    }
-
-    // Init: check models loaded
-    fetch('/models_status')
-      .then(r => r.json())
-      .then(d => {
-        if (d.loaded) {
-          document.getElementById('placeholderText').textContent = 'Click Start to begin detection';
-        }
-      })
-      .catch(() => {});
-  </script>
 </body>
 </html>
