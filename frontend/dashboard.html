@@ -40,7 +40,7 @@
     <div class="left-column">
 
       <!-- Video Feed Section -->
-      <div class="glass-card">
+      <div class="glass">
 
         <!-- Video Feed -->
         <div class="video-container" style="position:relative">
@@ -58,7 +58,7 @@
       </div>
 
       <!-- Start/Stop Button (NOW BELOW VIDEO) -->
-      <button id="toggleBtn" onclick="toggleDetection()">
+      <button id="toggleBtn" class="btn-start" onclick="toggleDetection()">
         📷 Start Detection
       </button>
 
@@ -81,7 +81,7 @@
       <!-- Status -->
       <div class="stat-card">
         <h3>Current Status</h3>
-        <div class="status-banner status-alert" id="statusBanner">
+        <div class="status-badge" id="statusBanner">
           Driver Alert
         </div>
       </div>
@@ -161,7 +161,7 @@
     <div class="stat-card">
       <h3>⚙ Driving Modes</h3>
 
-      <div class="mode-toggle active" id="safetyMode" onclick="toggleSafety()">
+      <div class="mode-item" id="safetyMode" onclick="toggleSafety()">
         🛡 Safety Mode
       </div>
 
@@ -209,7 +209,7 @@
   </div>
 
   <!-- Footer -->
-  <footer>
+ <footer class="site-footer">
     <div class="footer-grid">
       <div>
         <strong>👁 Vigilance Driver</strong>
