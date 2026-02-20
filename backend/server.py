@@ -12,7 +12,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 app = Flask(__name__)
-CORS(app, origins=["https://vigilance-driver.vercel.app/"])
+CORS(app, origins=["https://vigilance-driver.vercel.app"])
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
@@ -56,7 +56,7 @@ def signup():
     return jsonify({"token": token, "email": email}), 201
 
 
-@app.route("/api/login", methods=["POST"])
+@app.route("/api/login", methods=["POST", "OPTIONS"])
 def login():
     data = request.json
     email = data.get("email", "").strip()
