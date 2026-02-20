@@ -56,7 +56,7 @@ def signup():
     return jsonify({"token": token, "email": email}), 201
 
 
-@app.route("/api/login", methods=["POST", "OPTIONS"])
+@app.route("/api/login", methods=["POST"])
 def login():
     data = request.json
     email = data.get("email", "").strip()
@@ -113,11 +113,6 @@ def home():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
-@app.route('/favicon.ico')
-def favicon():
-    return '', 204
-
 
 
     
