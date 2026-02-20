@@ -12,7 +12,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 app = Flask(__name__)
-CORS(app, origins=["https://vigilance-driver.vercel.app"])
+CORS(app, resources={r"/api/*": {"origins": "https://vigilance-driver.vercel.app"}})
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
@@ -36,44 +36,19 @@ def verify_token(token):
 
 @app.route("/api/signup", methods=["POST"])
 def signup():
-    data = request.json
-    email = data.get("email", "").strip()
-    password = data.get("password", "").strip()
-
-    if not email or not password:
-        return jsonify({"error": "Email and password are required"}), 400
-
-    if len(password) < 6:
-        return jsonify({"error": "Password must be at least 6 characters"}), 400
-
-    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-    user_id = create_user(email, hashed)
-
-    if not user_id:
-        return jsonify({"error": "Email already exists"}), 409
-
-    token = generate_token(user_id, email)
-    return jsonify({"token": token, "email": email}), 201
-
-
+    data = request.get_json(silent=True)
+if not data:
+    return jsonify({"error": "Invalid request"}), 400
+   
 @app.route("/api/login", methods=["POST"])
 def login():
-    data = request.json
-    email = data.get("email", "").strip()
-    password = data.get("password", "").strip()
-
-    user = find_user_by_email(email)
-    if not user:
-        return jsonify({"error": "Invalid email or password"}), 401
-
-    if not bcrypt.checkpw(password.encode("utf-8"), user["password"]):
-        return jsonify({"error": "Invalid email or password"}), 401
-
-    token = generate_token(str(user["_id"]), email)
-    return jsonify({"token": token, "email": email}), 200
-
+    data = request.get_json(silent=True)
+if not data:
+    return jsonify({"error": "Invalid request"}), 400
+   
 
 @app.route("/api/session", methods=["POST"])
+data = request.get_json(silent=True)
 def save_detection_session():
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
@@ -116,3 +91,8 @@ if __name__ == "__main__":
 
 
     
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+    return response
