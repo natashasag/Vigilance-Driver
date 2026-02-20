@@ -23,13 +23,24 @@
       <button class="btn-signout" onclick="logout()">↪ Sign Out</button>
     </div>
   </header>
-
- 
-    <!-- Video Feed Section -->
+  <div class="dashboard-grid">
+ <!-- Video Feed Section -->
 <div class="grid grid-cols-3 gap-6 p-6">
+
     <!-- Left Column -->
-    
-      <div class="col-span-2 space-y-6">
+    <div class="col-span-2 space-y-6">
+      <div class="card">
+        <div class="video-container">
+          <video id="webcam" muted playsinline></video>
+          <div class="video-placeholder" id="videoPlaceholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+            <p>Click Start to begin detection</p>
+          </div>
+        </div>
+      </div>
+      <button class="btn-start" id="btnStart" onclick="toggleDetection()">📷 Start Detection</button>
+
+      
          <!-- Video Feed -->
     <div class="glass-card overflow-hidden">
       <div class="relative aspect-video bg-gray-900">
@@ -53,13 +64,14 @@
     </button>
 
       <!-- Session Log -->
-      <div class="glass-card p-6">
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="flex items-center gap-2 font-bold text-white">🕐 Session Log</h3>
-        <span id="logCount" class="text-sm text-gray-400">0 events</span>
-      </div>
-      <div id="sessionLog" class="max-h-40 space-y-2 overflow-y-auto">
-        <p class="text-center text-sm text-gray-400">Start detection to see logs</p>
+      <div class="card" style="margin-top:24px">
+        <div class="session-log">
+          <div class="session-log-header">
+            <h3>🕐 Session Log</h3>
+            <span id="logCount" style="color:#6b7a8d;font-size:13px">0 events</span>
+          </div>
+          <div class="log-entries" id="logEntries">
+            <p class="log-empty">Start detection to see logs</p>
       </div>
     </div>
   </div>
@@ -190,6 +202,6 @@
     <div class="footer-copy">© 2026 Vigilance Driver - Driver Drowsiness Detection System. All rights reserved.</div>
   </footer>
 
- 
+ <script src="app.js"></script>
 </body>
 </html>
