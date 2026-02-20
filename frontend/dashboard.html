@@ -4,197 +4,140 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vigilance Driver - Dashboard</title>
-
-  <link rel="stylesheet" href="./styles.css">
-
+  <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-  <script src="app.js" defer></script>
+
 </head>
-
 <body>
-
   <!-- Header -->
   <header class="dashboard-header">
     <div class="header-brand">
-      <h1>👁 Driver Drowsiness Detection</h1>
-      <p>Real-time EAR & Facial Landmark Monitoring</p>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#22c55e"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+      <div><h1>Driver Drowsiness Detection</h1><p>Real-time EAR &amp; Facial Landmark Monitoring</p></div>
     </div>
-
     <div class="header-actions">
-      <span class="status-online">🟢 Online</span>
-      <button class="btn-privacy" onclick="togglePrivacy()">🛡 Privacy Mode</button>
-      <button class="btn-signout" onclick="signOut()">🚪 Sign Out</button>
+      <span class="status-online">📶 Online</span>
+      <button class="btn-privacy">🛡 Privacy Mode 👁</button>
+      <button class="btn-signout" onclick="logout()">↪ Sign Out</button>
     </div>
   </header>
 
-  <!-- Main Grid -->
   <div class="dashboard-grid">
-
-    <!-- LEFT SIDE -->
-    <div>
-
-      <!-- Video Card -->
-      <div class="card">
-        <div class="video-container">
-          <video id="video" muted playsinline></video>
-          <canvas id="overlayCanvas"></canvas>
-
-          <div class="video-placeholder" id="placeholder">
-            <p id="placeholderText">Loading face detection models...</p>
-          </div>
+    
+<!-- Video Feed -->
+    <div class="glass-card overflow-hidden">
+      <div class="relative aspect-video bg-gray-900">
+        <video id="webcam" class="h-full w-full object-cover" autoplay muted playsinline></video>
+        <canvas id="overlayCanvas" class="absolute inset-0 h-full w-full" style="pointer-events: none;"></canvas>
+        <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center">
+          <svg class="mb-4 h-16 w-16 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          <p class="text-gray-400">Click Start to begin detection</p>
         </div>
       </div>
-
-      <!-- Start Button -->
-      <button id="toggleBtn" class="btn-start" onclick="toggleDetection()">
-        📷 Start Detection
-      </button>
-
-      <!-- Session Log -->
-      <div class="card session-log">
-        <div class="session-log-header">
-          <h3>🕐 Session Log</h3>
-          <span id="logCount">0 events</span>
-        </div>
-
-        <div class="log-entries" id="logList">
-          <p class="log-empty">Start detection to see logs</p>
-        </div>
-      </div>
-
     </div>
 
-    <!-- RIGHT SIDE -->
-    <div>
+    <!-- Start/Stop Button (NOW BELOW VIDEO) -->
+    <button id="toggleBtn" onclick="toggleDetection()"
+      class="flex w-full items-center justify-center gap-3 rounded-xl bg-green-500 py-4 text-lg font-bold text-white transition-all hover:brightness-110">
+      📷 Start Detection
+    </button>
 
+     <!-- Session Log -->
+    <div class="glass-card p-6">
+      <div class="mb-4 flex items-center justify-between">
+        <h3 class="flex items-center gap-2 font-bold text-white">🕐 Session Log</h3>
+        <span id="logCount" class="text-sm text-gray-400">0 events</span>
+      </div>
+      <div id="sessionLog" class="max-h-40 space-y-2 overflow-y-auto">
+        <p class="text-center text-sm text-gray-400">Start detection to see logs</p>
+      </div>
+    </div>
+  </div>
+
+    <!-- Right Column -->
+    <div class="space-y-6">
       <!-- Status -->
       <div class="card">
         <div class="card-header">Current Status</div>
-        <div class="status-badge alert" id="statusBanner">
-          Driver Alert
-        </div>
+        <div class="status-badge alert" id="statusBadge">Driver Alert</div>
       </div>
 
       <!-- EAR -->
-      <div class="card">
+      <div class="card" style="margin-top:16px">
         <div class="card-header">Eye Aspect Ratio (EAR)</div>
-        <div class="ear-value" id="earValue">0.000</div>
-        <div class="ear-info" id="earStatus">
-          Threshold: 0.25 | Eyes Open
-        </div>
-
-        <div class="progress-bar">
-          <div class="progress-fill green" id="earBar" style="width:0%"></div>
-        </div>
+        <div class="ear-value" id="earValue">0.300</div>
+        <div class="ear-info" id="earInfo">Threshold: 0.25 | Eyes Open</div>
+        <div class="progress-bar"><div class="progress-fill green" id="earFill" style="width:75%"></div></div>
       </div>
 
-      <!-- Drowsiness -->
-      <div class="card">
-        <div class="card-header">⚡ Multi-Factor Drowsiness Score</div>
-
-        <div class="drowsiness-score" id="drowsinessValue">0</div>
-        <div class="fatigue-label" id="fatigueLabel">
-          Low Fatigue Level
-        </div>
-
-        <div class="progress-bar">
-          <div class="progress-fill green" id="drowsinessBar" style="width:0%"></div>
-        </div>
-
+      <!-- Drowsiness Score -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-header">⚙ Multi-Factor Drowsiness Score</div>
+        <div class="drowsiness-score" id="drowsinessScore">15</div>
+        <div class="fatigue-label" id="fatigueLabel" style="color:#22c55e">Low Fatigue Level</div>
+        <div class="progress-bar"><div class="progress-fill green" id="drowsinessFill" style="width:15%"></div></div>
         <div class="why-section">
           <h4>⚠ Why this score?</h4>
-          <p id="explainText">• Alertness levels are normal</p>
+          <p id="whyText">• Alertness levels are normal</p>
         </div>
       </div>
 
       <!-- Quick Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-value" id="microSleeps">0</div>
-          <div class="stat-label">Micro-sleeps</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-value" id="blinkRate">0/min</div>
-          <div class="stat-label">Blink Rate</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-value" id="blinks">0</div>
-          <div class="stat-label">Blinks</div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-value" id="yawns">0</div>
-          <div class="stat-label">Yawns</div>
-        </div>
+      <div class="stats-grid" style="margin-top:16px">
+        <div class="stat-card"><div class="stat-value" id="statMicrosleeps">0</div><div class="stat-label">Micro-sleeps</div></div>
+        <div class="stat-card"><div class="stat-value" id="statBlinkRate">0/min</div><div class="stat-label">Blink Rate</div></div>
+        <div class="stat-card"><div class="stat-value" id="statBlinks">0</div><div class="stat-label">Blinks</div></div>
+        <div class="stat-card"><div class="stat-value" id="statYawns">0</div><div class="stat-label">Yawns</div></div>
+        <div class="stat-card"><div class="stat-value" id="statAlerts">0</div><div class="stat-label">Alerts</div></div>
+        <div class="stat-card"><div class="stat-value" id="statMicrosleeps2">0</div><div class="stat-label">Micro-sleeps</div></div>
       </div>
 
       <!-- Head Pose -->
-      <div class="card">
+      <div class="card" style="margin-top:16px">
         <div class="card-header">Head Pose Score</div>
         <div class="head-pose-row">
-          <div class="progress-bar head-pose-bar">
-            <div class="progress-fill green" id="headPoseBar" style="width:0%"></div>
-          </div>
-          <span class="head-pose-val" id="headPoseValue">0%</span>
+          <div class="progress-bar head-pose-bar"><div class="progress-fill green" id="headPoseFill" style="width:100%"></div></div>
+          <span class="head-pose-val" id="headPoseVal">100%</span>
         </div>
       </div>
-
     </div>
   </div>
 
   <!-- Bottom Section -->
   <div class="bottom-grid">
-
     <!-- Driving Modes -->
-    <div class="card">
-      <div class="card-header">⚙ Driving Modes</div>
-
-      <div class="mode-item active">
-        <div class="mode-icon green">🛡</div>
-        <div class="mode-info">
-          <h4>Safety Mode</h4>
-          <p>Maximum sensitivity & alerts</p>
+    <div class="card" style="padding:20px">
+      <h3>⚙ Driving Modes</h3>
+      <div style="margin-top:16px">
+        <div class="mode-item active" onclick="toggleSafetyMode()">
+          <div class="mode-icon green" id="safetyIcon">🛡</div>
+          <div class="mode-info"><h4>Safety Mode</h4><p>Maximum sensitivity &amp; alerts</p></div>
+          <div class="toggle on" id="safetyToggle"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="mode-item" style="margin-top:12px" onclick="toggleEcoMode()">
+          <div class="mode-icon gray" id="ecoIcon">⚡</div>
+          <div class="mode-info"><h4>Eco Mode</h4><p>Reduced processing, saves battery</p></div>
+          <div class="toggle off" id="ecoToggle"><div class="toggle-knob"></div></div>
         </div>
       </div>
-
-      <div class="mode-item">
-        <div class="mode-icon gray">⚡</div>
-        <div class="mode-info">
-          <h4>Eco Mode</h4>
-          <p>Reduced processing, saves battery</p>
-        </div>
-      </div>
-
-      <div class="mode-status">
-        ⚡ Maximum protection active
-      </div>
+      <div class="mode-status" id="modeStatus">⚡ Maximum protection active</div>
     </div>
 
-    <!-- Wellness -->
+    <!-- Wellness Insights -->
     <div class="card wellness-card">
       <h3>❤ Wellness Insights</h3>
-      <div class="wellness-msg">
-        <h4 id="wellnessTitle">✨ Great Alertness!</h4>
-        <p id="wellnessText">
-          Your eye openness is excellent. Keep maintaining good sleep habits.
-        </p>
+      <div class="wellness-msg" style="margin-top:16px">
+        <h4>✨ Great Alertness!</h4>
+        <p>Your eye openness is excellent. Keep maintaining good sleep habits.</p>
       </div>
-
       <div class="wellness-stats">
-        <div>
-          <div class="wellness-stat-value" id="sessionTime">0m 0s</div>
-          <div class="wellness-stat-label">Session Time</div>
-        </div>
-
-        <div>
-          <div class="wellness-stat-value" id="avgAlertness">100%</div>
-          <div class="wellness-stat-label">Avg Alertness</div>
-        </div>
+        <div><div class="wellness-stat-value" id="sessionTime">0m</div><div class="wellness-stat-label">Session Time</div></div>
+        <div><div class="wellness-stat-value" id="avgAlertness">30%</div><div class="wellness-stat-label">Avg Alertness</div></div>
       </div>
     </div>
-
   </div>
 
   <!-- How It Works -->
@@ -203,19 +146,18 @@
       <h3>How It Works</h3>
       <div class="how-grid">
         <div>
-          <h4>EAR FORMULA:</h4>
-          <code>
-            EAR = (|p2-p6| + |p3-p5|) / (2 × |p1-p4|)
-          </code>
+          <h4>Eye Aspect Ratio (EAR) Formula:</h4>
+          <code>EAR = (|p2-p6| + |p3-p5|) / (2 × |p1-p4|)</code>
+          <p style="margin-top:8px;font-size:14px;color:#6b7a8d">When EAR drops below 0.25 for 2-3 seconds, drowsiness is detected.</p>
         </div>
         <div>
-          <h4>DETECTION FEATURES:</h4>
+          <h4>Detection Features:</h4>
           <ul>
-           <li>68-point facial landmark detection</li>
-           <li>Real-time EAR & MAR calculation</li>
-           <li>Micro-sleep detection</li>
-           <li>Head pose monitoring</li> 
-           <li>Multi-factor drowsiness scoring</li>
+            <li>68-point facial landmark detection</li>
+            <li>Real-time EAR &amp; MAR calculation</li>
+            <li>Micro-sleep detection</li>
+            <li>Head pose monitoring</li>
+            <li>Multi-factor drowsiness scoring</li>
           </ul>
         </div>
       </div>
@@ -227,37 +169,21 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <h3>👁 Vigilance Driver</h3>
-        <p>Driver Drowsiness Detection System Using advanced facial landmark analysis and Eye Aspect Ratio (EAR) technology to keep drivers safe on the road.</p>
+        <p>Driver drowsiness detection system using advanced facial landmark analysis and Eye Aspect Ratio (EAR) technology to keep drivers safe on the road.</p>
+        <div class="footer-tags"><span>🛡 Privacy First</span><span>⚡ Real-time</span></div>
       </div>
-        <div class="footer-tags"><span>🛡Privacy First</span><span>⚡ Real-time</span></div>
       <div class="footer-col">
-        <h4>FEATURES</h4>
-        <ul>
-          <li>EAR Detection</li>
-          <li>Micro-sleep Alerts</li>
-          <li>Head Pose Tracking</li>
-          <li>Yawn Detection</li>
-          <li>Session Analytics</li>
-        </ul>
+        <h4>Features</h4>
+        <ul><li>EAR-based Detection</li><li>Micro-sleep Alerts</li><li>Yawn Detection</li><li>Head Pose Tracking</li><li>Session Analytics</li></ul>
       </div>
-
       <div class="footer-col">
-        <h4>TECHNOLOGY</h4>
-        <ul>
-          <li>face-api.js</li>
-          <li>68-Point Landmarks</li>
-          <li>Web Audio API</li>
-          <li>Flask + Python</li>
-          <li>Real-time Processing</li>
-
-        </ul>
+        <h4>Technology</h4>
+        <ul><li>face-api.js</li><li>68-point Landmarks</li><li>Web Audio API</li><li>Flask + MongoDB</li><li>Real-time Processing</li></ul>
       </div>
     </div>
-
-    <div class="footer-copy">
-      © 2026 VIGILANCE DRIVER-Driver Drowsiness Detection System. All rights reserved.
-    </div>
+    <div class="footer-copy">© 2026 Vigilance Driver - Driver Drowsiness Detection System. All rights reserved.</div>
   </footer>
 
+  <script src="app.js"></script>
 </body>
 </html>
