@@ -7,7 +7,6 @@
 
   <link rel="stylesheet" href="styles.css?v=2026">
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
-  <script src="app.js?v=2026" defer></script>
 </head>
 
 <body>
@@ -31,19 +30,24 @@
     </div>
   </header>
 
+  <!-- MAIN GRID -->
   <div class="dashboard-grid">
 
     <!-- LEFT COLUMN -->
     <div>
 
-      <!-- Video Section -->
+      <!-- VIDEO CARD -->
       <div class="card">
         <div class="video-container" style="position:relative">
-          <video id="webcam" autoplay muted playsinline 
+
+          <video id="webcam"
+            autoplay
+            muted
+            playsinline
             style="width:100%;height:100%;object-fit:cover">
           </video>
 
-          <canvas id="overlayCanvas" 
+          <canvas id="overlayCanvas"
             style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none">
           </canvas>
 
@@ -55,15 +59,19 @@
             <p id="modelStatus">Loading face detection models...</p>
             <p>Click Start to begin detection</p>
           </div>
+
         </div>
       </div>
 
-      <!-- Start Button BELOW video -->
-      <button class="btn-start" id="btnStart" onclick="toggleDetection()">
+      <!-- START BUTTON BELOW VIDEO -->
+      <button class="btn-start"
+              id="btnStart"
+              onclick="toggleDetection()"
+              style="margin-top:16px">
         📷 Start Detection
       </button>
 
-      <!-- Session Log -->
+      <!-- SESSION LOG -->
       <div class="card" style="margin-top:24px">
         <div class="session-log">
           <div class="session-log-header">
@@ -81,7 +89,7 @@
     <!-- RIGHT COLUMN -->
     <div>
 
-      <!-- Status -->
+      <!-- STATUS -->
       <div class="card">
         <div class="card-header">Current Status</div>
         <div class="status-badge alert" id="statusBadge">Driver Alert</div>
@@ -97,7 +105,7 @@
         </div>
       </div>
 
-      <!-- Drowsiness Score -->
+      <!-- DROWSINESS SCORE -->
       <div class="card" style="margin-top:16px">
         <div class="card-header">⚙ Multi-Factor Drowsiness Score</div>
         <div class="drowsiness-score" id="drowsinessScore">15</div>
@@ -113,25 +121,48 @@
         </div>
       </div>
 
+      <!-- QUICK STATS -->
+      <div class="stats-grid" style="margin-top:16px">
+        <div class="stat-card"><div class="stat-value" id="statMicrosleeps">0</div><div class="stat-label">Micro-sleeps</div></div>
+        <div class="stat-card"><div class="stat-value" id="statBlinkRate">0/min</div><div class="stat-label">Blink Rate</div></div>
+        <div class="stat-card"><div class="stat-value" id="statBlinks">0</div><div class="stat-label">Blinks</div></div>
+        <div class="stat-card"><div class="stat-value" id="statYawns">0</div><div class="stat-label">Yawns</div></div>
+        <div class="stat-card"><div class="stat-value" id="statAlerts">0</div><div class="stat-label">Alerts</div></div>
+        <div class="stat-card"><div class="stat-value" id="statMicrosleeps2">0</div><div class="stat-label">Micro-sleeps</div></div>
+      </div>
+
+      <!-- HEAD POSE -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-header">Head Pose Score</div>
+        <div class="head-pose-row">
+          <div class="progress-bar head-pose-bar">
+            <div class="progress-fill green" id="headPoseFill" style="width:100%"></div>
+          </div>
+          <span class="head-pose-val" id="headPoseVal">100%</span>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
-  <!-- Footer -->
+  <!-- FOOTER -->
   <footer class="site-footer">
     <div class="footer-grid">
       <div class="footer-brand">
         <h3>👁 Vigilance Driver</h3>
         <p>
-          Driver drowsiness detection system using advanced facial landmark analysis 
-          and Eye Aspect Ratio (EAR) technology to keep drivers safe on the road.
+          Driver drowsiness detection system using advanced facial landmark
+          analysis and Eye Aspect Ratio (EAR) technology.
         </p>
       </div>
     </div>
     <div class="footer-copy">
-      © 2026 Vigilance Driver - Driver Drowsiness Detection System.
+      © 2026 Vigilance Driver - All rights reserved.
     </div>
   </footer>
+
+  <script src="app.js?v=2026"></script>
 
 </body>
 </html>
