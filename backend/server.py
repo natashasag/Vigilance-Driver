@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+
 from database import create_user, find_user_by_email, save_session, get_sessions
 import bcrypt
 import jwt
@@ -11,7 +12,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 app = Flask(__name__)
-CORS(app, origins=["https://vigilance-driver.netlify.app"])
+CORS(app, origins=["https://vigilance-driver.vercel.app/"])
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
