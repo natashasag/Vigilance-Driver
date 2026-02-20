@@ -1,3 +1,5 @@
+
+
 // ---- Auth ----
 function getToken() { return localStorage.getItem('token'); }
 function logout() { localStorage.removeItem('token'); localStorage.removeItem('email'); window.location.href = 'login.html'; }

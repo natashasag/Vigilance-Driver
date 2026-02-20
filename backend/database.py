@@ -2,7 +2,7 @@ import os
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-MONGO_URI = os.environ.get("MONGO_URI")
+MONGO_URI = "mongodb+srv://natashasag:SEMESTER06@cluster0.grku4ke.mongodb.net/?appName=Cluster0"
 
 if not MONGO_URI:
     raise Exception("MONGO_URI environment variable not set")
