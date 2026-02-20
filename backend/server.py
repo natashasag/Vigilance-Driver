@@ -12,6 +12,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 CORS(app, origins=["https://vigilance-driver.vercel.app"])
+@app.after_request
+def after_request(response):
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+    return response
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
@@ -96,7 +101,7 @@ def save_detection_session():
 
 @app.route("/api/sessions", methods=["GET"])
 def get_detection_sessions():
-    data = request.get_json(silent=True)
+    
     
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
@@ -122,8 +127,7 @@ def home():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
-
+   
 
 
     
