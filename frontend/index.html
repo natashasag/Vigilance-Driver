@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vigilance Driver - Login</title>
-  <link rel="stylesheet" href="./styles.css">
-
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="auth-container">
@@ -48,7 +47,7 @@
       btn.textContent = 'Signing in...';
 
       try {
-        const res = await fetch('https://vigilance-driver.onrender.com/api/login', {
+        const res = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

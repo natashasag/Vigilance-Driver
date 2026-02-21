@@ -1,5 +1,3 @@
-
-
 // ---- Auth ----
 function getToken() { return localStorage.getItem('token'); }
 function logout() { localStorage.removeItem('token'); localStorage.removeItem('email'); window.location.href = 'login.html'; }
@@ -199,7 +197,7 @@ async function saveSession() {
     avg_alertness: Math.max(0, 100 - parseInt(document.getElementById('drowsinessScore')?.textContent || '0'))
   };
   try {
-    await fetch('https://vigilance-driver.onrender.com/api/session', {
+    await fetch('/api/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify(data)
@@ -384,7 +382,7 @@ function toggleEcoMode() {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-  if (!getToken()) { window.location.href = 'index.html'; return; }
+  if (!getToken()) { window.location.href = 'login.html'; return; }
   renderLogs();
   loadModels();
 });

@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vigilance Driver - Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
 
@@ -24,17 +23,15 @@
   </header>
 
   <div class="dashboard-grid">
-
-  <!-- Left Column -->
-    <div class="col-span-2 space-y-6">
-       <div class="card">
-         
-<!-- Video Feed -->
-    <div class="grid grid-cols-3 gap-6 p-6">
+    <!-- Left Column -->
+    <div>
+      <div class="card">
+        <!-- Video Feed -->
+    <div class="glass-card overflow-hidden">
       <div class="relative aspect-video bg-gray-900">
         <video id="webcam" class="h-full w-full object-cover" autoplay muted playsinline></video>
         <canvas id="overlayCanvas" class="absolute inset-0 h-full w-full" style="pointer-events: none;"></canvas>
-        <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center">  </div>
+        <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center">
           <svg class="mb-4 h-16 w-16 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -42,14 +39,14 @@
           <p class="text-gray-400">Click Start to begin detection</p>
         </div>
       </div>
-     
+    </div>
+
     <!-- Start/Stop Button (NOW BELOW VIDEO) -->
     <button id="toggleBtn" onclick="toggleDetection()"
       class="flex w-full items-center justify-center gap-3 rounded-xl bg-green-500 py-4 text-lg font-bold text-white transition-all hover:brightness-110">
       📷 Start Detection
     </button>
-</div>
-     <!-- Session Log -->
+      <!-- Session Log -->
     <div class="glass-card p-6">
       <div class="mb-4 flex items-center justify-between">
         <h3 class="flex items-center gap-2 font-bold text-white">🕐 Session Log</h3>

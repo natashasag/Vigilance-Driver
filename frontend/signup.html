@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vigilance Driver - Sign Up</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="auth-container">
@@ -32,7 +32,7 @@
         <input type="password" id="confirmPassword" placeholder="••••••••" required>
       </div>
       <button type="submit" class="btn-primary" id="submitBtn">✚ Create Account</button>
-      <p class="auth-link">Already have an account? <a href="index.html">Sign In</a></p>
+      <p class="auth-link">Already have an account? <a href="login.html">Sign In</a></p>
     </form>
   </div>
   <script>
@@ -56,7 +56,7 @@
       btn.textContent = 'Creating account...';
 
       try {
-        const res = await fetch('https://vigilance-driver.onrender.com/api/signup', {
+        const res = await fetch('/api/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: document.getElementById('email').value, password: pw })

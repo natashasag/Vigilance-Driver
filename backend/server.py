@@ -6,17 +6,8 @@ import jwt
 import datetime
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
-
-app = Flask(__name__)
-CORS(app, origins=["https://vigilance-driver.vercel.app"])
-@app.after_request
-def after_request(response):
-    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
-    response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-    return response
+app = Flask(__name__, static_folder="../frontend", static_url_path="")
+CORS(app)
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
@@ -38,12 +29,20 @@ def verify_token(token):
     except jwt.InvalidTokenError:
         return None
 
+
+@app.route("/")
+def index():
+    return send_from_directory("../frontend", "login.html")
+
+
+@app.route("/<path:path>")
+def serve_static(path):
+    return send_from_directory("../frontend", path)
+
+
 @app.route("/api/signup", methods=["POST"])
 def signup():
-    data = request.get_json(silent=True)
-    if not data:
-        return jsonify({"error": "Invalid request"}), 400
-
+    data = request.json
     email = data.get("email", "").strip()
     password = data.get("password", "").strip()
 
@@ -62,12 +61,10 @@ def signup():
     token = generate_token(user_id, email)
     return jsonify({"token": token, "email": email}), 201
 
+
 @app.route("/api/login", methods=["POST"])
 def login():
-    data = request.get_json(silent=True)
-    if not data:
-        return jsonify({"error": "Invalid request"}), 400
-
+    data = request.json
     email = data.get("email", "").strip()
     password = data.get("password", "").strip()
 
@@ -84,10 +81,6 @@ def login():
 
 @app.route("/api/session", methods=["POST"])
 def save_detection_session():
-    data = request.get_json(silent=True)
-    if not data:
-        return jsonify({"error": "Invalid request"}), 400
-
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         return jsonify({"error": "Unauthorized"}), 401
@@ -96,13 +89,13 @@ def save_detection_session():
     if not decoded:
         return jsonify({"error": "Invalid token"}), 401
 
+    data = request.json
     save_session(decoded["user_id"], data)
     return jsonify({"message": "Session saved"}), 201
 
+
 @app.route("/api/sessions", methods=["GET"])
 def get_detection_sessions():
-    
-    
     auth = request.headers.get("Authorization", "")
     if not auth.startswith("Bearer "):
         return jsonify({"error": "Unauthorized"}), 401
@@ -114,20 +107,6 @@ def get_detection_sessions():
     sessions = get_sessions(decoded["user_id"])
     return jsonify(sessions), 200
 
-# Example API route
-@app.route("/predict", methods=["POST"])
-def predict():
-    data = request.get_json(silent=True)
-    return jsonify({"result": "OK"})
-
-@app.route("/")
-def home():
-    return "Vigilance Driver Backend Running 🚀"
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
-   
-
-
-    
+    app.run(debug=True, port=5000)
