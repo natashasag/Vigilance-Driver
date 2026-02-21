@@ -26,40 +26,35 @@
     <!-- Left Column -->
     <div>
       <div class="card">
-        <!-- Video Feed -->
-    <div class="glass-card overflow-hidden">
-      <div class="relative aspect-video bg-gray-900">
-        <video id="webcam" class="h-full w-full object-cover" autoplay muted playsinline></video>
-        <canvas id="overlayCanvas" class="absolute inset-0 h-full w-full" style="pointer-events: none;"></canvas>
-        <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center">
-          <svg class="mb-4 h-16 w-16 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-          </svg>
-          <p class="text-gray-400">Click Start to begin detection</p>
+        <div class="video-container" style="position:relative">
+  <video id="webcam" muted playsinline style="width:100%;height:100%;object-fit:cover"></video>
+  <canvas id="overlayCanvas" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none"></canvas>
+  <div class="video-placeholder" id="videoPlaceholder">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
+    <p id="modelStatus">Loading face detection models...</p>
+    <p>Click Start to begin detection</p>
+  </div>
+</div>
+
+      </div>
+      <button class="btn-start" id="btnStart" onclick="toggleDetection()">📷 Start Detection</button>
+
+      <!-- Session Log -->
+      <div class="card" style="margin-top:24px">
+        <div class="session-log">
+          <div class="session-log-header">
+            <h3>🕐 Session Log</h3>
+            <span id="logCount" style="color:#6b7a8d;font-size:13px">0 events</span>
+          </div>
+          <div class="log-entries" id="logEntries">
+            <p class="log-empty">Start detection to see logs</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Start/Stop Button (NOW BELOW VIDEO) -->
-    <button id="toggleBtn" onclick="toggleDetection()"
-      class="flex w-full items-center justify-center gap-3 rounded-xl bg-green-500 py-4 text-lg font-bold text-white transition-all hover:brightness-110">
-      📷 Start Detection
-    </button>
-      <!-- Session Log -->
-    <div class="glass-card p-6">
-      <div class="mb-4 flex items-center justify-between">
-        <h3 class="flex items-center gap-2 font-bold text-white">🕐 Session Log</h3>
-        <span id="logCount" class="text-sm text-gray-400">0 events</span>
-      </div>
-      <div id="sessionLog" class="max-h-40 space-y-2 overflow-y-auto">
-        <p class="text-center text-sm text-gray-400">Start detection to see logs</p>
-      </div>
-    </div>
-  </div>
-
     <!-- Right Column -->
-    <div class="space-y-6">
+    <div>
       <!-- Status -->
       <div class="card">
         <div class="card-header">Current Status</div>
