@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient("mongodb+srv://natashasag:<db_password>@cluster0.grku4ke.mongodb.net/?appName=Cluster0")
 db = client["vigilance_driver"]
 users_collection = db["users"]
 sessions_collection = db["sessions"]
