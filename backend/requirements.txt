@@ -5,3 +5,7 @@ PyJWT
 bcrypt
 gunicorn
 python-dotenv
+opencv-python
+numpy
+scipy
+imutils
