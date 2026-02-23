@@ -7,7 +7,7 @@ import datetime
 import os
 
 app = Flask(__name__)
-CORS(app, origins=["https://vigilance-driver.vercel.app"])
+CORS(app, resources={r"/api/*": {"origins": "https://vigilance-driver.vercel.app"}})
 
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
