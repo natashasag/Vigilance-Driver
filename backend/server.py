@@ -31,8 +31,8 @@ def verify_token(token):
 
 
 @app.route("/")
-def index():
-    return send_from_directory("../frontend", "index.html")
+def login():
+    return send_from_directory("../frontend", "login.html")
 
 
 @app.route("/<path:path>")
