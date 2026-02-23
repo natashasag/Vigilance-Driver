@@ -31,7 +31,7 @@ def verify_token(token):
 
 
 @app.route("/")
-def login():
+def serve_login_page():
     return send_from_directory("../frontend", "login.html")
 
 
