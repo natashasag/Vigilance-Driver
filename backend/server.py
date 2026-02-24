@@ -32,7 +32,7 @@ def verify_token(token):
 
 @app.route("/")
 def serve_login_page():
-    return send_from_directory("../frontend", "login.html")
+    return send_from_directory("../frontend", "index.html")
 
 
 @app.route("/<path:path>")
@@ -63,7 +63,7 @@ def signup():
 
 
 @app.route("/api/login", methods=["POST"])
-def login():
+def login_api():
     data = request.json
     email = data.get("email", "").strip()
     password = data.get("password", "").strip()

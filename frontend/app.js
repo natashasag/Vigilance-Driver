@@ -1,6 +1,6 @@
 // ---- Auth ----
 function getToken() { return localStorage.getItem('token'); }
-function logout() { localStorage.removeItem('token'); localStorage.removeItem('email'); window.location.href = 'login.html'; }
+function logout() { localStorage.removeItem('token'); localStorage.removeItem('email'); window.location.href = 'index.html'; }
 
 // ---- Detection State ----
 let isRunning = false;
@@ -382,7 +382,7 @@ function toggleEcoMode() {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-  if (!getToken()) { window.location.href = 'login.html'; return; }
+  if (!getToken()) { window.location.href = 'index.html'; return; }
   renderLogs();
   loadModels();
 });
