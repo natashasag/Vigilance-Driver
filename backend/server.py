@@ -7,8 +7,11 @@ import datetime
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "https://vigilance-driver.vercel.app"}})
-
+CORS(app,
+     origins=["https://vigilance-driver.vercel.app"],
+     supports_credentials=True,
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"])
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
 
@@ -62,8 +65,8 @@ def signup():
     return jsonify({"token": token, "email": email}), 201
 
 
-@app.route("/api/login", methods=["POST"])
-def login_api():
+@app.route("/api/login", methods=["POST" ,"OPTIONS"])
+def login():
     data = request.json
     email = data.get("email", "").strip()
     password = data.get("password", "").strip()
