@@ -7,7 +7,8 @@ import datetime
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
 
