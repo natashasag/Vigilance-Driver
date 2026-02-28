@@ -9,7 +9,7 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise Exception("MONGO_URI not found in environment variables")
-client = MongoClient(MONGO_URI)
+client = MongoClient(MONGO_URI, maxPoolSize=10)
 db = client["vigilance_driver"]
 users_collection = db["users"]
 sessions_collection = db["sessions"]

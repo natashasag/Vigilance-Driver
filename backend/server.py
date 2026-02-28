@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from database import create_user, find_user_by_email, save_session, get_sessions
-import bcrypt
+from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
 import os
@@ -58,7 +58,8 @@ def signup():
     if len(password) < 6:
         return jsonify({"error": "Password must be at least 6 characters"}), 400
 
-    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    hashed = generate_password_hash(password)
+
     user_id = create_user(email, hashed)
 
     if not user_id:
@@ -78,7 +79,7 @@ def login():
     if not user:
         return jsonify({"error": "Invalid email or password"}), 401
 
-    if not bcrypt.checkpw(password.encode("utf-8"), user["password"]):
+    if not check_password_hash(user["password"], password):
         return jsonify({"error": "Invalid email or password"}), 401
 
     token = generate_token(str(user["_id"]), email)
