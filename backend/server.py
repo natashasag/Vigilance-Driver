@@ -71,19 +71,34 @@ def signup():
 
 @app.route("/api/login", methods=["POST"])
 def login():
-    data = request.json
-    email = data.get("email", "").strip()
-    password = data.get("password", "").strip()
+    try:
+        data = request.get_json()
 
-    user = find_user_by_email(email)
-    if not user:
-        return jsonify({"error": "Invalid email or password"}), 401
+        if not data:
+            return jsonify({"error": "Invalid request"}), 400
 
-    if not check_password_hash(user["password"], password):
-        return jsonify({"error": "Invalid email or password"}), 401
+        email = data.get("email", "").strip()
+        password = data.get("password", "").strip()
 
-    token = generate_token(str(user["_id"]), email)
-    return jsonify({"token": token, "email": email}), 200
+        if not email or not password:
+            return jsonify({"error": "Email and password required"}), 400
+
+        user = find_user_by_email(email)
+
+        if not user:
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        if not bcrypt.checkpw(password.encode("utf-8"), user["password"]):
+            return jsonify({"error": "Invalid email or password"}), 401
+
+        token = generate_token(str(user["_id"]), email)
+
+        return jsonify({"token": token, "email": email}), 200
+
+    except Exception as e:
+        print("LOGIN ERROR:", str(e))
+        return jsonify({"error": "Server error"}), 500
+
 
 
 @app.route("/api/session", methods=["POST"])
