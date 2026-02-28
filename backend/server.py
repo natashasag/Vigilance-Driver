@@ -7,7 +7,13 @@ import datetime
 import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "https://vigilance-driver.vercel.app"}},
+    supports_credentials=True
+)
+
+
 app.config['CORS_HEADERS'] = 'Content-Type'
 SECRET_KEY = "vigilance-driver-secret-key-2026"
 
@@ -31,7 +37,7 @@ def verify_token(token):
 
 
 @app.route("/")
-def serve_login_page():
+def server_login_page():
     return send_from_directory("../frontend", "index.html")
 
 
